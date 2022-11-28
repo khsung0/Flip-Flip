@@ -1,0 +1,2 @@
+rootProject.name='Flip Flip'
+include ':app'
