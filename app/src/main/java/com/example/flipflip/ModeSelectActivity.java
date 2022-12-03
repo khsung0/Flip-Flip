@@ -15,6 +15,16 @@ public class ModeSelectActivity extends AppCompatActivity {
 
     public void goToDifficultySelect(View view){
         Intent intent = new Intent(this, DifficultySelectActivity.class);
+        int player;
+        switch (view.getId()){
+            case R.id.onePlayer:
+                player=1;
+                break;
+            default:
+                player=2;
+        }
+        intent.putExtra("player",player);
+
         startActivity(intent);
     }
 }
