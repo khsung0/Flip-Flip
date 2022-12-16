@@ -1,13 +1,20 @@
 package com.example.flipflip;
-
+import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 
 public class GameActivity extends AppCompatActivity {
+
+    private TableLayout tl;
+    private TableRow tRow;
+    private ImageView img;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,21 +26,24 @@ public class GameActivity extends AppCompatActivity {
         System.out.println(difficulty);
         appendTableRow(difficulty);
     }
-
+    Context mContext;
     public void appendTableRow(int difficulty){
-        final TableLayout tl = (TableLayout)findViewById(R.id.tableLayout);
-//        float len = tl.getWidth();
+        tl = findViewById(R.id.tableLayout);
+        tl.setGravity(1);
         for (int i=0; i<difficulty; i++){
-            TableRow tRow = new TableRow(this);
+            tRow = new TableRow(this);
             for (int j=0; j<difficulty; j++){
-                ImageView img = new ImageView(this);
+                img = new ImageView(this);
                 img.setImageResource(R.drawable.ic_launcher_foreground);
 
                 //이미지 크기 조절
+                TableRow.LayoutParams params = new TableRow.LayoutParams(100,150);
+                img.setLayoutParams(params);
 
-
+                //Table Row에 이미지 붙이기
                 tRow.addView(img);
             }
+            //TableView에 Table Row붙이기
             tl.addView(tRow);
         }
 
