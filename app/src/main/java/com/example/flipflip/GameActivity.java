@@ -19,7 +19,8 @@ public class GameActivity extends AppCompatActivity {
         Intent intent = getIntent();
         int player = intent.getIntExtra("player",0);
         int difficulty = intent.getIntExtra("difficulty",0);
-        System.out.println(difficulty);
+        String jenre = intent.getStringExtra("jenre");
+
         appendTableRow(difficulty);
     }
 
