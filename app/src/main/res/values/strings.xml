@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Flip Flip</string>
+    <integer name="dog_img_start">0</integer>
+    <integer name="cat_img_start">1</integer>
 </resources>

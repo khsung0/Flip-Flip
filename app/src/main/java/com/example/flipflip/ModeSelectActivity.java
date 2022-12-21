@@ -3,9 +3,11 @@ package com.example.flipflip;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 public class ModeSelectActivity extends AppCompatActivity {
 
@@ -29,7 +31,20 @@ public class ModeSelectActivity extends AppCompatActivity {
         //스피너 값 가져와서 다음 액티비티로 전달
         Spinner spinner = findViewById(R.id.spinner);
         String jenre = spinner.getSelectedItem().toString();
-        intent.putExtra("jenre",jenre);
+
+        int imgIndex;
+
+        switch (jenre){
+            case "강아지":
+                imgIndex = getResources().getInteger(R.integer.dog_img_start);
+                break;
+            case "고양이":
+                imgIndex = getResources().getInteger(R.integer.cat_img_start);
+                break;
+            default:
+                imgIndex = -1;
+                break;
+        }
 
         int player;
         switch (view.getId()){
@@ -39,8 +54,14 @@ public class ModeSelectActivity extends AppCompatActivity {
             default:
                 player=2;
         }
-        intent.putExtra("player",player);
 
-        startActivity(intent);
+        if(imgIndex < 0){
+            Toast.makeText(getApplicationContext(),"문제가 발생했습니다.",Toast.LENGTH_LONG).show();
+            Log.e("IMG INDEX ERROR","Index = "+imgIndex);
+        }else{
+            intent.putExtra("imgIndex",imgIndex);
+            intent.putExtra("player",player);
+            startActivity(intent);
+        }
     }
 }

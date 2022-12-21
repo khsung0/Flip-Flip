@@ -16,7 +16,7 @@ public class DifficultySelectActivity extends AppCompatActivity {
     public void goToGame(View view){
         Intent intent = getIntent();
         int player = intent.getIntExtra("player",0);
-        String jenre = intent.getStringExtra("jenre");
+        int imgIndex = intent.getIntExtra("imgIndex",0);
         intent = new Intent(this, GameActivity.class);
         int difficulty;
         switch (view.getId()){
@@ -34,7 +34,7 @@ public class DifficultySelectActivity extends AppCompatActivity {
         }
         intent.putExtra("player",player);
         intent.putExtra("difficulty",difficulty);
-        intent.putExtra("jenre",jenre);
+        intent.putExtra("imgIndex",imgIndex);
 
         startActivity(intent);
     }
