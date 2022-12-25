@@ -9,9 +9,11 @@
         android:id="@+id/tableLayout"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:stretchColumns="*">
+        android:stretchColumns="*"
+        android:splitMotionEvents="false">
 
         <TableRow
+            android:id="@+id/head_row"
             android:weightSum="3">
 
             <ImageView
@@ -41,7 +43,7 @@
     </TableLayout>
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/ad_test"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"

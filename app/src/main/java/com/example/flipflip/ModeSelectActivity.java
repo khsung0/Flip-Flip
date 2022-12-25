@@ -36,10 +36,10 @@ public class ModeSelectActivity extends AppCompatActivity {
 
         switch (jenre){
             case "강아지":
-                imgIndex = getResources().getInteger(R.integer.dog_img_start);
+                imgIndex = 0;
                 break;
             case "고양이":
-                imgIndex = getResources().getInteger(R.integer.cat_img_start);
+                imgIndex = 1;
                 break;
             default:
                 imgIndex = -1;
