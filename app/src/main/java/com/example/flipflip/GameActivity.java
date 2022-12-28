@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +48,13 @@ public class GameActivity extends AppCompatActivity {
 
         appendTableRow(startIndex+1,startIndex+integers[imgIndex]);
 
+
+//        타이머 스레드 실행
+        TimerThread th = new TimerThread();
+        Thread t = new Thread(th);
+        t.start();
+
+
         //1인용일 때
         if(player==1){
             soloGame();
@@ -55,6 +63,7 @@ public class GameActivity extends AppCompatActivity {
             duoGame();
         }
 
+
     }
 
 //    이차원 객체 배열에 랜덤 이미지 인덱스 설정
@@ -62,9 +71,9 @@ public class GameActivity extends AppCompatActivity {
         Integer[] randomList = new Integer[difficulty*difficulty/2];
         Random rand = new Random();
         for (int i = 0; i < difficulty*difficulty/2; i++){
-            randomList[i] = (Integer)rand.nextInt(end)+start;
+            randomList[i] = rand.nextInt(end)+start;
             for(int j = 0; j<i; j++){
-                if (randomList[i] == randomList[j]){
+                if (randomList[i].equals(randomList[j])){
                     i--;
                     break;
                 }
@@ -75,7 +84,7 @@ public class GameActivity extends AppCompatActivity {
         tempList1.addAll(tempList2);
         Collections.shuffle(tempList1);
         Collections.shuffle(tempList1);
-        Integer res[] = tempList1.toArray(new Integer[tempList1.size()]);
+        Integer[] res = tempList1.toArray(new Integer[tempList1.size()]);
 
         for (int i =0; i < difficulty; i++){
             for (int j =0; j < difficulty; j++){
@@ -97,15 +106,14 @@ public class GameActivity extends AppCompatActivity {
         //뷰 크기 구하기 테스트
         View test = findViewById(R.id.head_row);
 
-        test.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);;
+        test.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         System.out.println(test.getMeasuredHeight());
         System.out.println(test.getMeasuredWidth());
         View test1 = findViewById(R.id.ad_test);
-        test1.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);;
+        test1.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         System.out.println(test1.getMeasuredHeight());
 
-        int lid;
-
+        size.y=size.y-test.getMeasuredHeight()-test1.getMeasuredHeight();
 
 
         int temp=1;
@@ -117,7 +125,7 @@ public class GameActivity extends AppCompatActivity {
                 img.setImageResource(R.drawable.card_img);
                 System.out.println(size.y+"|"+test.getMeasuredHeight()+"|"+test1.getMeasuredHeight());
                 //이미지 크기 조절 (임시 설정)
-                TableRow.LayoutParams params = new TableRow.LayoutParams(size.x/difficulty, size.x/difficulty*618/423);
+                TableRow.LayoutParams params = new TableRow.LayoutParams(size.x/difficulty, size.y/difficulty);
                 img.setLayoutParams(params);
                 img.setPadding(10,10,10,10);
                 img.setOnClickListener(new  View.OnClickListener() {
@@ -144,5 +152,27 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void duoGame() {
+    }
+
+    private class TimerThread implements Runnable {
+        TextView timer;
+        private TimerThread(){
+            timer = findViewById(R.id.timer);
+        }
+
+        public void run(){
+            int second = 0;
+            while (true){
+                timer.setText(String.format("%03d", second));
+                try {
+                    // 스레드에게 수행시킬 동작들 구현
+                    Thread.sleep(1000); // 1초간 Thread를 잠재운다
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    break;
+                }
+                second++;
+            }
+        }
     }
 }
