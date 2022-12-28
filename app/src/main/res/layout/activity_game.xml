@@ -19,14 +19,14 @@
             <ImageView
                 android:id="@+id/player1"
                 android:layout_width="0dp"
-                android:layout_height="130sp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 app:srcCompat="@android:drawable/btn_star_big_on"></ImageView>
 
             <TextView
                 android:id="@+id/text2"
                 android:layout_width="0dp"
-                android:layout_height="130sp"
+                android:layout_height="111dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="02"
@@ -35,7 +35,7 @@
             <ImageView
                 android:id="@+id/player2"
                 android:layout_width="0dp"
-                android:layout_height="130sp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 app:srcCompat="@drawable/ic_launcher_background"></ImageView>
 

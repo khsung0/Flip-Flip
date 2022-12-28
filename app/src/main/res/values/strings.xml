@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Flip Flip</string>
     <integer-array name="img_index">
-        <item>1</item>  <!-- 강아지 사진 개수 -->
-        <item>3</item>  <!-- 고양이 사진 개수 -->
+        <item>50</item>  <!-- 강아지 사진 개수 -->
+        <item>50</item>  <!-- 고양이 사진 개수 -->
     </integer-array>
 </resources>

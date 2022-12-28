@@ -11,11 +11,19 @@ import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
 public class GameActivity extends AppCompatActivity {
 
     private TableLayout tl;
     private TableRow tRow;
     private ImageView img;
+    private pictureImg[][] cardList;
+    private int difficulty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,16 +31,21 @@ public class GameActivity extends AppCompatActivity {
         setContentView(R.layout.activity_game);
         Intent intent = getIntent();
         int player = intent.getIntExtra("player",0);
-        int difficulty = intent.getIntExtra("difficulty",0);
+        difficulty = intent.getIntExtra("difficulty",0);
         int imgIndex = intent.getIntExtra("imgIndex",0);
         int startIndex = 0;
+        cardList = new pictureImg[difficulty][];
+        for (int i = 0; i < difficulty; i++){
+            cardList[i] = new pictureImg[difficulty];
+        }
         int[] integers = getResources().getIntArray(R.array.img_index);
         for (int i =0;i<imgIndex;i++){
             startIndex += integers[i];
         }
 
+        generateImgIndex(startIndex+1,startIndex+integers[imgIndex]);
 
-        appendTableRow(difficulty,startIndex+1,startIndex+integers[imgIndex]);
+        appendTableRow(startIndex+1,startIndex+integers[imgIndex]);
 
         //1인용일 때
         if(player==1){
@@ -44,7 +57,34 @@ public class GameActivity extends AppCompatActivity {
 
     }
 
-    public void appendTableRow(int difficulty, int start, int end){
+//    이차원 객체 배열에 랜덤 이미지 인덱스 설정
+    private void generateImgIndex(int start, int end) {
+        Integer[] randomList = new Integer[difficulty*difficulty/2];
+        Random rand = new Random();
+        for (int i = 0; i < difficulty*difficulty/2; i++){
+            randomList[i] = (Integer)rand.nextInt(end)+start;
+            for(int j = 0; j<i; j++){
+                if (randomList[i] == randomList[j]){
+                    i--;
+                    break;
+                }
+            }
+        }
+        List<Integer> tempList1 = new ArrayList(Arrays.asList(randomList));
+        List<Integer> tempList2 = new ArrayList(Arrays.asList(randomList));
+        tempList1.addAll(tempList2);
+        Collections.shuffle(tempList1);
+        Collections.shuffle(tempList1);
+        Integer res[] = tempList1.toArray(new Integer[tempList1.size()]);
+
+        for (int i =0; i < difficulty; i++){
+            for (int j =0; j < difficulty; j++){
+                cardList[i][j] = new pictureImg(false, res[i*difficulty+j]);
+            }
+        }
+    }
+
+    public void appendTableRow(int start, int end){
         tl = findViewById(R.id.tableLayout);
         tl.setGravity(1);
 
@@ -77,8 +117,9 @@ public class GameActivity extends AppCompatActivity {
                 img.setImageResource(R.drawable.card_img);
                 System.out.println(size.y+"|"+test.getMeasuredHeight()+"|"+test1.getMeasuredHeight());
                 //이미지 크기 조절 (임시 설정)
-                TableRow.LayoutParams params = new TableRow.LayoutParams(size.x/difficulty,size.y/difficulty/2);
+                TableRow.LayoutParams params = new TableRow.LayoutParams(size.x/difficulty, size.x/difficulty*618/423);
                 img.setLayoutParams(params);
+                img.setPadding(10,10,10,10);
                 img.setOnClickListener(new  View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

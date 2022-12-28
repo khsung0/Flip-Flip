@@ -8,6 +8,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class pictureImg {
-    boolean isOpend;    //카드 open 됐는지 확인
-    int imgIndex;       //이미지 인덱스
+    boolean isOpend = false;    //카드 open 됐는지 확인
+    int imgIndex = 0;       //이미지 인덱스
 }
