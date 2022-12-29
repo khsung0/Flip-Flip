@@ -31,6 +31,8 @@ public class GameActivity extends AppCompatActivity {
     private int difficulty;
     private SoundPool soundPool;
     private int flipSound;
+    private int[] openedIndex = {-1, -1};
+    private int clickCnt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,8 @@ public class GameActivity extends AppCompatActivity {
         //        효과음
         soundPool = new SoundPool.Builder().build();
         flipSound = soundPool.load(this, R.raw.cardflip, 0);
+
+        clickCnt = 0;
     }
 
     @Override
@@ -62,12 +66,6 @@ public class GameActivity extends AppCompatActivity {
         generateImgIndex(startIndex+1,startIndex+integers[imgIndex]);
 
         appendTableRow(startIndex+1,startIndex+integers[imgIndex]);
-
-//        타이머 스레드 실행
-        TimerThread th = new TimerThread();
-        Thread t = new Thread(th);
-        t.start();
-
 
         //1인용일 때
         if(player==1){
@@ -147,7 +145,6 @@ public class GameActivity extends AppCompatActivity {
                             findViewById(i).setClickable(false);
                         }
                         if(soundPool!=null){
-                            System.out.println(soundPool);
                             soundPool.play(flipSound, 5, 5, 0, 0, 1);
                             flipSound=soundPool.load(GameActivity.super.getApplicationContext(), R.raw.cardflip, 0);
                         }
@@ -167,7 +164,6 @@ public class GameActivity extends AppCompatActivity {
                 });
                 //Table Row에 이미지 붙이기
                 tRow.addView(img);
-
                 idIndex++;
             }
             //TableView에 Table Row붙이기
@@ -176,15 +172,62 @@ public class GameActivity extends AppCompatActivity {
 
     }
 
+    private void startAllOpen(){
+        ObjectAnimator animator;
+        StartThread sleepThread = new StartThread();
+
+        for (int i = 0; i < idIndex; i++){
+            animator = ObjectAnimator.ofFloat(findViewById(i),"rotationY",0,180);
+            animator.start();
+        }
+//        스레드 기다리면서 렌더링이 늦어짐
+//        Thread test = new Thread(sleepThread);
+//        test.start();
+//
+//        try {
+//            test.join();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+        for (int i = 0; i < idIndex; i++){
+            animator = ObjectAnimator.ofFloat(findViewById(i),"rotationY",0,180);
+            animator.start();
+        }
+    }
+
     private void soloGame() {
+        startAllOpen();
+        //        타이머 스레드 실행
+        SoloTimerThread th = new SoloTimerThread();
+        Thread t = new Thread(th);
+        t.start();
     }
 
     private void duoGame() {
+        startAllOpen();
+        DuoTimerThread th = new DuoTimerThread();
+        Thread t = new Thread(th);
+        t.start();
+
     }
 
-    private class TimerThread implements Runnable {
+    private class StartThread implements Runnable {
+        private StartThread(){
+        }
+
+        public void run(){
+            try {
+                // 스레드에게 수행시킬 동작들 구현
+                Thread.sleep(5000); // 1초간 Thread를 잠재운다
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private class SoloTimerThread implements Runnable {
         TextView timer;
-        private TimerThread(){
+        private SoloTimerThread(){
             timer = findViewById(R.id.timer);
         }
 
@@ -200,6 +243,28 @@ public class GameActivity extends AppCompatActivity {
                     break;
                 }
                 second++;
+            }
+        }
+    }
+
+    private class DuoTimerThread implements Runnable {
+        TextView timer;
+        private DuoTimerThread(){
+            timer = findViewById(R.id.timer);
+        }
+
+        public void run(){
+            int second = 10;
+            while (second>=0){
+                timer.setText(Integer.toString(second));
+                try {
+                    // 스레드에게 수행시킬 동작들 구현
+                    Thread.sleep(1000); // 1초간 Thread를 잠재운다
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    break;
+                }
+                second--;
             }
         }
     }
