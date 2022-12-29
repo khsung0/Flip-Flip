@@ -1,8 +1,11 @@
 package com.example.flipflip;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.Point;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
@@ -23,13 +26,25 @@ public class GameActivity extends AppCompatActivity {
     private TableLayout tl;
     private TableRow tRow;
     private ImageView img;
+    private int idIndex;
     private pictureImg[][] cardList;
     private int difficulty;
+    private SoundPool soundPool;
+    private int flipSound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        //        효과음
+        soundPool = new SoundPool.Builder().build();
+        flipSound = soundPool.load(this, R.raw.cardflip, 0);
+    }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
         Intent intent = getIntent();
         int player = intent.getIntExtra("player",0);
         difficulty = intent.getIntExtra("difficulty",0);
@@ -48,7 +63,6 @@ public class GameActivity extends AppCompatActivity {
 
         appendTableRow(startIndex+1,startIndex+integers[imgIndex]);
 
-
 //        타이머 스레드 실행
         TimerThread th = new TimerThread();
         Thread t = new Thread(th);
@@ -58,15 +72,13 @@ public class GameActivity extends AppCompatActivity {
         //1인용일 때
         if(player==1){
             soloGame();
-        //2인용일 때
+            //2인용일 때
         }else{
             duoGame();
         }
-
-
     }
 
-//    이차원 객체 배열에 랜덤 이미지 인덱스 설정
+    //    이차원 객체 배열에 랜덤 이미지 인덱스 설정
     private void generateImgIndex(int start, int end) {
         Integer[] randomList = new Integer[difficulty*difficulty/2];
         Random rand = new Random();
@@ -116,12 +128,12 @@ public class GameActivity extends AppCompatActivity {
         size.y=size.y-test.getMeasuredHeight()-test1.getMeasuredHeight();
 
 
-        int temp=1;
+        idIndex=0;
         for (int i=0; i<difficulty; i++){
             tRow = new TableRow(this);
             for (int j=0; j<difficulty; j++){
                 img = new ImageView(this);
-                img.setId(temp);
+                img.setId(idIndex);
                 img.setImageResource(R.drawable.card_img);
                 System.out.println(size.y+"|"+test.getMeasuredHeight()+"|"+test1.getMeasuredHeight());
                 //이미지 크기 조절 (임시 설정)
@@ -131,16 +143,32 @@ public class GameActivity extends AppCompatActivity {
                 img.setOnClickListener(new  View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-//                        v.setClickable(false);
+                        for (int i =0; i<idIndex;i++){
+                            findViewById(i).setClickable(false);
+                        }
+                        if(soundPool!=null){
+                            System.out.println(soundPool);
+                            soundPool.play(flipSound, 5, 5, 0, 0, 1);
+                            flipSound=soundPool.load(GameActivity.super.getApplicationContext(), R.raw.cardflip, 0);
+                        }
                         ObjectAnimator animator = ObjectAnimator.ofFloat(v,"rotationY",0,180);
                         animator.setDuration(500);
                         animator.start();
+                        animator.addListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                for (int i =0; i<idIndex;i++){
+                                    findViewById(i).setClickable(true);
+                                }
+                            }
+                        });
                     }
                 });
                 //Table Row에 이미지 붙이기
                 tRow.addView(img);
 
-                temp++;
+                idIndex++;
             }
             //TableView에 Table Row붙이기
             tl.addView(tRow);
@@ -174,5 +202,12 @@ public class GameActivity extends AppCompatActivity {
                 second++;
             }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        soundPool.release();
+        soundPool = null;
     }
 }
