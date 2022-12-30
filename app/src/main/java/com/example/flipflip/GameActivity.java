@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.media.SoundPool;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
 import android.view.View;
@@ -33,6 +34,9 @@ public class GameActivity extends AppCompatActivity {
     private int flipSound;
     private int[] openedIndex = {-1, -1};
     private int clickCnt;
+    private int player;
+    private int[] soloData;
+    private int[] duoData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +47,10 @@ public class GameActivity extends AppCompatActivity {
         soundPool = new SoundPool.Builder().build();
         flipSound = soundPool.load(this, R.raw.cardflip, 0);
 
+//                   오픈한 카드 개수, 클릭회수, 열린 카드 아이디(-1은 열린 카드 없음)
+        soloData= new int[]{0, 0, -1};
+//        임시 데이터
+        duoData= new int[]{0};
         clickCnt = 0;
     }
 
@@ -50,7 +58,7 @@ public class GameActivity extends AppCompatActivity {
     protected void onStart(){
         super.onStart();
         Intent intent = getIntent();
-        int player = intent.getIntExtra("player",0);
+        player = intent.getIntExtra("player",0);
         difficulty = intent.getIntExtra("difficulty",0);
         int imgIndex = intent.getIntExtra("imgIndex",0);
         int startIndex = 0;
@@ -67,13 +75,16 @@ public class GameActivity extends AppCompatActivity {
 
         appendTableRow(startIndex+1,startIndex+integers[imgIndex]);
 
-        //1인용일 때
-        if(player==1){
-            soloGame();
-            //2인용일 때
+        startAllOpen();
+        Thread t;
+        if(player == 1){
+            SoloTimerThread th = new SoloTimerThread();
+            t = new Thread(th);
         }else{
-            duoGame();
+            DuoTimerThread th = new DuoTimerThread();
+            t = new Thread(th);
         }
+        t.start();
     }
 
     //    이차원 객체 배열에 랜덤 이미지 인덱스 설정
@@ -123,10 +134,10 @@ public class GameActivity extends AppCompatActivity {
         test1.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
         System.out.println(test1.getMeasuredHeight());
 
-        size.y=size.y-test.getMeasuredHeight()-test1.getMeasuredHeight();
+        size.y = size.y-test.getMeasuredHeight()-test1.getMeasuredHeight();
 
 
-        idIndex=0;
+        idIndex = 0;
         for (int i=0; i<difficulty; i++){
             tRow = new TableRow(this);
             for (int j=0; j<difficulty; j++){
@@ -141,23 +152,29 @@ public class GameActivity extends AppCompatActivity {
                 img.setOnClickListener(new  View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        for (int i =0; i<idIndex;i++){
-                            findViewById(i).setClickable(false);
-                        }
+                        clickControl(false);
                         if(soundPool!=null){
                             soundPool.play(flipSound, 5, 5, 0, 0, 1);
-                            flipSound=soundPool.load(GameActivity.super.getApplicationContext(), R.raw.cardflip, 0);
+                            flipSound = soundPool.load(GameActivity.super.getApplicationContext(), R.raw.cardflip, 0);
                         }
                         ObjectAnimator animator = ObjectAnimator.ofFloat(v,"rotationY",0,180);
                         animator.setDuration(500);
                         animator.start();
+                        System.out.println(v.getId());
+                        System.out.println("["+(int)v.getId()/(difficulty)+", "+v.getId()%(difficulty)+"]");
+                        if(player == 1 ){
+                            while(soloData[0]<difficulty*difficulty){
+
+                            }
+                        }else{
+
+                        }
+
                         animator.addListener(new AnimatorListenerAdapter() {
                             @Override
                             public void onAnimationEnd(Animator animation) {
                                 super.onAnimationEnd(animation);
-                                for (int i =0; i<idIndex;i++){
-                                    findViewById(i).setClickable(true);
-                                }
+                                clickControl(true);
                             }
                         });
                     }
@@ -174,25 +191,24 @@ public class GameActivity extends AppCompatActivity {
 
     private void startAllOpen(){
         ObjectAnimator animator;
-        StartThread sleepThread = new StartThread();
-
-        for (int i = 0; i < idIndex; i++){
-            animator = ObjectAnimator.ofFloat(findViewById(i),"rotationY",0,180);
-            animator.start();
-        }
-//        스레드 기다리면서 렌더링이 늦어짐
-//        Thread test = new Thread(sleepThread);
-//        test.start();
-//
-//        try {
-//            test.join();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
+        clickControl(false);
+//        for (int i = 0; i < idIndex; i++){
+//            animator = ObjectAnimator.ofFloat(findViewById(i),"rotationY",0,180);
+//            animator.start();
 //        }
-        for (int i = 0; i < idIndex; i++){
-            animator = ObjectAnimator.ofFloat(findViewById(i),"rotationY",0,180);
-            animator.start();
-        }
+
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                for (int i = 0; i < idIndex; i++){
+                    ObjectAnimator animator = ObjectAnimator.ofFloat(findViewById(i),"rotationY",0,180);
+                    animator.start();
+                }
+                clickControl(true);
+            }
+        }, 5000);
     }
 
     private void soloGame() {
@@ -201,6 +217,8 @@ public class GameActivity extends AppCompatActivity {
         SoloTimerThread th = new SoloTimerThread();
         Thread t = new Thread(th);
         t.start();
+
+
     }
 
     private void duoGame() {
@@ -211,16 +229,14 @@ public class GameActivity extends AppCompatActivity {
 
     }
 
-    private class StartThread implements Runnable {
-        private StartThread(){
-        }
-
-        public void run(){
-            try {
-                // 스레드에게 수행시킬 동작들 구현
-                Thread.sleep(5000); // 1초간 Thread를 잠재운다
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+    private void clickControl(boolean bool) {
+        if(bool){
+            for (int i =0; i<idIndex;i++){
+                findViewById(i).setClickable(true);
+            }
+        }else{
+            for (int i =0; i<idIndex;i++){
+                findViewById(i).setClickable(false);
             }
         }
     }
