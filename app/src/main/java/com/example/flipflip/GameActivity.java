@@ -37,6 +37,9 @@ public class GameActivity extends AppCompatActivity {
     private int player;
     private int[] soloData;
     private int[] duoData;
+    private Thread t;
+    private SoloTimerThread stt;
+    private DuoTimerThread dtt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +50,10 @@ public class GameActivity extends AppCompatActivity {
         soundPool = new SoundPool.Builder().build();
         flipSound = soundPool.load(this, R.raw.cardflip, 0);
 
-//                   오픈한 카드 개수, 클릭회수, 열린 카드 아이디(-1은 열린 카드 없음)
+//                   오픈한 카드 개수, 클릭 회수, 열린 카드 아이디(-1은 열린 카드 없음)
         soloData= new int[]{0, 0, -1};
-//        임시 데이터
-        duoData= new int[]{0};
+//                   레드팀 Score, 블루팀 Scrore, 팀 Turn, 오픈한 카드 개수, 열린 카드 아이디(-1은 열린 카드 없음)
+        duoData= new int[]{0, 0, 0, 0, -1};
         clickCnt = 0;
     }
 
@@ -72,19 +75,17 @@ public class GameActivity extends AppCompatActivity {
         }
 
         generateImgIndex(startIndex+1,startIndex+integers[imgIndex]);
-
         appendTableRow(startIndex+1,startIndex+integers[imgIndex]);
+        System.out.println("appendTableRow 실행");
+
+        for (pictureImg[] card: cardList) {
+            for (pictureImg eachCard:card) {
+                System.out.print(eachCard.getImgIndex()+"-");
+            }
+            System.out.println();
+        }
 
         startAllOpen();
-        Thread t;
-        if(player == 1){
-            SoloTimerThread th = new SoloTimerThread();
-            t = new Thread(th);
-        }else{
-            DuoTimerThread th = new DuoTimerThread();
-            t = new Thread(th);
-        }
-        t.start();
     }
 
     //    이차원 객체 배열에 랜덤 이미지 인덱스 설정
@@ -160,14 +161,37 @@ public class GameActivity extends AppCompatActivity {
                         ObjectAnimator animator = ObjectAnimator.ofFloat(v,"rotationY",0,180);
                         animator.setDuration(500);
                         animator.start();
-                        System.out.println(v.getId());
-                        System.out.println("["+(int)v.getId()/(difficulty)+", "+v.getId()%(difficulty)+"]");
+//                        System.out.println(v.getId());
+//                        System.out.println("["+(int)v.getId()/(difficulty)+", "+v.getId()%(difficulty)+"]");
                         if(player == 1 ){
-                            while(soloData[0]<difficulty*difficulty){
-
+                            soloData[1]++;
+                            if(soloData[2] == -1){
+                                soloData[0]++;
+                                soloData[2] = v.getId();
+                            }else{
+                                if(cardList[(int)soloData[2]/(difficulty)][(int)soloData[2]%(difficulty)].getImgIndex() == cardList[(int)v.getId()/(difficulty)][(int)v.getId()%(difficulty)].getImgIndex()){
+                                    soloData[0]++;
+                                    soloData[2] = -1;
+                                    System.out.println("일치");
+                                }else{
+                                    soloData[0]--;
+                                    soloData[2] = -1;
+                                    System.out.println("불일치");
+                                }
+                            }
+//                            게임 종료
+                            if(soloData[0] == difficulty*difficulty){
+                                t.interrupt();
                             }
                         }else{
 
+                            t.interrupt();
+
+//                            게임 종료
+                            if(duoData[0] == difficulty*difficulty){
+                                t.interrupt();
+                                t = null;
+                            }
                         }
 
                         animator.addListener(new AnimatorListenerAdapter() {
@@ -190,12 +214,13 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void startAllOpen(){
-        ObjectAnimator animator;
+        TextView timer = findViewById(R.id.timer);
+        if(player == 1){
+            timer.setText(String.format("%03d", 0));
+        }else{
+            timer.setText(String.format("%02d", 0));
+        }
         clickControl(false);
-//        for (int i = 0; i < idIndex; i++){
-//            animator = ObjectAnimator.ofFloat(findViewById(i),"rotationY",0,180);
-//            animator.start();
-//        }
 
         new Handler().postDelayed(new Runnable()
         {
@@ -207,26 +232,16 @@ public class GameActivity extends AppCompatActivity {
                     animator.start();
                 }
                 clickControl(true);
+                if(player == 1){
+                    stt = new SoloTimerThread();
+                    t = new Thread(stt);
+                }else{
+                    dtt = new DuoTimerThread();
+                    t = new Thread(dtt);
+                }
+                t.start();
             }
         }, 5000);
-    }
-
-    private void soloGame() {
-        startAllOpen();
-        //        타이머 스레드 실행
-        SoloTimerThread th = new SoloTimerThread();
-        Thread t = new Thread(th);
-        t.start();
-
-
-    }
-
-    private void duoGame() {
-        startAllOpen();
-        DuoTimerThread th = new DuoTimerThread();
-        Thread t = new Thread(th);
-        t.start();
-
     }
 
     private void clickControl(boolean bool) {
@@ -272,7 +287,7 @@ public class GameActivity extends AppCompatActivity {
         public void run(){
             int second = 10;
             while (second>=0){
-                timer.setText(Integer.toString(second));
+                timer.setText(String.format("%02d", second));
                 try {
                     // 스레드에게 수행시킬 동작들 구현
                     Thread.sleep(1000); // 1초간 Thread를 잠재운다
@@ -282,7 +297,17 @@ public class GameActivity extends AppCompatActivity {
                 }
                 second--;
             }
+            if(t != null){
+                turnChange();
+            }
         }
+    }
+
+    private void turnChange() {
+        t.interrupt();
+        t = null;
+        t = new Thread(dtt);
+        t.start();
     }
 
     @Override
@@ -290,5 +315,9 @@ public class GameActivity extends AppCompatActivity {
         super.onDestroy();
         soundPool.release();
         soundPool = null;
+        stt = null;
+        dtt = null;
+        t.interrupt();
+        t = null;
     }
 }
