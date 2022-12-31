@@ -32,14 +32,12 @@ public class GameActivity extends AppCompatActivity {
     private int difficulty;
     private SoundPool soundPool;
     private int flipSound;
-    private int[] openedIndex = {-1, -1};
-    private int clickCnt;
     private int player;
-    private int[] soloData;
-    private int[] duoData;
-    private Thread t;
-    private SoloTimerThread stt;
-    private DuoTimerThread dtt;
+    private int[] soloData, duoData;             //1인용 데이터, 2인용 데이터
+    private Thread t;                   //스레드
+    private SoloTimerThread stt;        //1인용 스레드
+    private DuoTimerThread dtt;         //2인용 스레드
+    private List<Integer> blockImgList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +52,6 @@ public class GameActivity extends AppCompatActivity {
         soloData= new int[]{0, 0, -1};
 //                   레드팀 Score, 블루팀 Scrore, 팀 Turn, 오픈한 카드 개수, 열린 카드 아이디(-1은 열린 카드 없음)
         duoData= new int[]{0, 0, 0, 0, -1};
-        clickCnt = 0;
     }
 
     @Override
@@ -74,9 +71,10 @@ public class GameActivity extends AppCompatActivity {
             startIndex += integers[i];
         }
 
+        blockImgList = new ArrayList<>();
+
         generateImgIndex(startIndex+1,startIndex+integers[imgIndex]);
         appendTableRow(startIndex+1,startIndex+integers[imgIndex]);
-        System.out.println("appendTableRow 실행");
 
         for (pictureImg[] card: cardList) {
             for (pictureImg eachCard:card) {
@@ -152,7 +150,7 @@ public class GameActivity extends AppCompatActivity {
                 img.setPadding(10,10,10,10);
                 img.setOnClickListener(new  View.OnClickListener() {
                     @Override
-                    public void onClick(View v) {
+                    public void onClick(final View v) {
                         clickControl(false);
                         if(soundPool!=null){
                             soundPool.play(flipSound, 5, 5, 0, 0, 1);
@@ -163,25 +161,41 @@ public class GameActivity extends AppCompatActivity {
                         animator.start();
 //                        System.out.println(v.getId());
 //                        System.out.println("["+(int)v.getId()/(difficulty)+", "+v.getId()%(difficulty)+"]");
+
+                        animator.addListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                clickControl(true);
+                            }
+                        });
+
                         if(player == 1 ){
                             soloData[1]++;
                             if(soloData[2] == -1){
                                 soloData[0]++;
                                 soloData[2] = v.getId();
+                                findViewById(v.getId()).setClickable(false);
+                                blockImgList.add(v.getId());
                             }else{
                                 if(cardList[(int)soloData[2]/(difficulty)][(int)soloData[2]%(difficulty)].getImgIndex() == cardList[(int)v.getId()/(difficulty)][(int)v.getId()%(difficulty)].getImgIndex()){
+                                    findViewById(v.getId()).setClickable(false);
+                                    blockImgList.add(v.getId());
                                     soloData[0]++;
                                     soloData[2] = -1;
-                                    System.out.println("일치");
                                 }else{
+                                    findViewById(v.getId()).setClickable(true);
+                                    findViewById(soloData[2]).setClickable(true);
+                                    blockImgList.remove((Integer) soloData[2]);
+                                    blockImgList.remove((Integer) v.getId());
                                     soloData[0]--;
                                     soloData[2] = -1;
-                                    System.out.println("불일치");
                                 }
                             }
 //                            게임 종료
                             if(soloData[0] == difficulty*difficulty){
                                 t.interrupt();
+//                                알림창 띄우기
                             }
                         }else{
 
@@ -191,16 +205,15 @@ public class GameActivity extends AppCompatActivity {
                             if(duoData[0] == difficulty*difficulty){
                                 t.interrupt();
                                 t = null;
+                                if(duoData[0] > duoData[1]){
+
+                                }else if (duoData[0] < duoData[1]){
+
+                                }else{
+
+                                }
                             }
                         }
-
-                        animator.addListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                super.onAnimationEnd(animation);
-                                clickControl(true);
-                            }
-                        });
                     }
                 });
                 //Table Row에 이미지 붙이기
@@ -247,7 +260,9 @@ public class GameActivity extends AppCompatActivity {
     private void clickControl(boolean bool) {
         if(bool){
             for (int i =0; i<idIndex;i++){
-                findViewById(i).setClickable(true);
+                if(!blockImgList.contains(i)) {
+                    findViewById(i).setClickable(true);
+                }
             }
         }else{
             for (int i =0; i<idIndex;i++){
