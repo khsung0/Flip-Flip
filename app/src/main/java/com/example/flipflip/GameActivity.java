@@ -142,7 +142,11 @@ public class GameActivity extends AppCompatActivity {
             for (int j=0; j<difficulty; j++){
                 img = new ImageView(this);
                 img.setId(idIndex);
+
+//                변수 이용해서 이미지 설정
+//                img.setImageResource(getResources().getIdentifier( "@drawable/img_"+cardList[i][j].getImgIndex(), "drawable", this.getPackageName()));
                 img.setImageResource(R.drawable.card_img);
+                img.setImageResource(R.drawable.test);
                 System.out.println(size.y+"|"+test.getMeasuredHeight()+"|"+test1.getMeasuredHeight());
                 //이미지 크기 조절 (임시 설정)
                 TableRow.LayoutParams params = new TableRow.LayoutParams(size.x/difficulty, size.y/difficulty);
@@ -159,8 +163,6 @@ public class GameActivity extends AppCompatActivity {
                         ObjectAnimator animator = ObjectAnimator.ofFloat(v,"rotationY",0,180);
                         animator.setDuration(500);
                         animator.start();
-//                        System.out.println(v.getId());
-//                        System.out.println("["+(int)v.getId()/(difficulty)+", "+v.getId()%(difficulty)+"]");
 
                         animator.addListener(new AnimatorListenerAdapter() {
                             @Override
@@ -178,7 +180,7 @@ public class GameActivity extends AppCompatActivity {
                                 findViewById(v.getId()).setClickable(false);
                                 blockImgList.add(v.getId());
                             }else{
-                                if(cardList[(int)soloData[2]/(difficulty)][(int)soloData[2]%(difficulty)].getImgIndex() == cardList[(int)v.getId()/(difficulty)][(int)v.getId()%(difficulty)].getImgIndex()){
+                                if(cardList[soloData[2]/(difficulty)][soloData[2]%(difficulty)].getImgIndex() == cardList[v.getId()/(difficulty)][v.getId()%(difficulty)].getImgIndex()){
                                     findViewById(v.getId()).setClickable(false);
                                     blockImgList.add(v.getId());
                                     soloData[0]++;
@@ -187,7 +189,6 @@ public class GameActivity extends AppCompatActivity {
                                     findViewById(v.getId()).setClickable(true);
                                     findViewById(soloData[2]).setClickable(true);
                                     blockImgList.remove((Integer) soloData[2]);
-                                    blockImgList.remove((Integer) v.getId());
                                     soloData[0]--;
                                     soloData[2] = -1;
                                 }
@@ -197,12 +198,31 @@ public class GameActivity extends AppCompatActivity {
                                 t.interrupt();
 //                                알림창 띄우기
                             }
-                        }else{
 
-                            t.interrupt();
+//                            레드팀 Score, 블루팀 Scrore, 팀 Turn, 오픈한 카드 개수, 열린 카드 아이디(-1은 열린 카드 없음)
+//                            duoData = new int[]{0, 0, 0, 0, -1};
+                        }else{
+                            if(duoData[4] == -1){
+                                findViewById(v.getId()).setClickable(false);
+                                duoData[4] = v.getId();
+                                blockImgList.add(duoData[4]);
+                            }else{
+                                if(cardList[duoData[4]/(difficulty)][duoData[4]%(difficulty)].getImgIndex() == cardList[v.getId()/(difficulty)][v.getId()%(difficulty)].getImgIndex()){
+                                    findViewById(v.getId()).setClickable(false);
+                                    duoData[4] = -1;
+                                    blockImgList.add(v.getId());
+                                    duoData[duoData[2]] += 2;
+                                }else{
+                                    findViewById(duoData[4]).setClickable(true);
+                                    blockImgList.remove((Integer) duoData[4]);
+                                    duoData[4] = -1;
+                                }
+                                t.interrupt();
+                                duoData[2] = (duoData[2]+1)%2;
+                            }
 
 //                            게임 종료
-                            if(duoData[0] == difficulty*difficulty){
+                            if(duoData[3] == difficulty*difficulty){
                                 t.interrupt();
                                 t = null;
                                 if(duoData[0] > duoData[1]){
