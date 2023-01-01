@@ -6,7 +6,6 @@ import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.Outline;
 import android.graphics.Point;
-import android.graphics.drawable.GradientDrawable;
 import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
@@ -44,7 +43,6 @@ public class GameActivity extends AppCompatActivity {
     private SoloTimerThread stt;        //1인용 스레드
     private DuoTimerThread dtt;         //2인용 스레드
     private List<Integer> blockImgList;
-    private GradientDrawable radius;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,8 +57,6 @@ public class GameActivity extends AppCompatActivity {
         soloData = new int[]{0, 0, -1};
 //                   레드팀 Score, 블루팀 Scrore, 팀 Turn, 오픈한 카드 개수, 열린 카드 아이디(-1은 열린 카드 없음)
         duoData = new int[]{0, 0, 0, 0, -1};
-
-        radius = (GradientDrawable) this.getDrawable(R.drawable.radius);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
