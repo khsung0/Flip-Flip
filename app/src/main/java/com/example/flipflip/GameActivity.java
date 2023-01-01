@@ -4,14 +4,19 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.graphics.Outline;
 import android.graphics.Point;
+import android.graphics.drawable.GradientDrawable;
 import android.media.SoundPool;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.view.Display;
 import android.view.View;
-import android.widget.ImageView;
+import android.view.ViewOutlineProvider;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -26,7 +31,8 @@ public class GameActivity extends AppCompatActivity {
 
     private TableLayout tl;
     private TableRow tRow;
-    private ImageView img;
+//    private ImageView img;
+    private CardView img;
     private int idIndex;
     private pictureImg[][] cardList;
     private int difficulty;
@@ -38,6 +44,7 @@ public class GameActivity extends AppCompatActivity {
     private SoloTimerThread stt;        //1인용 스레드
     private DuoTimerThread dtt;         //2인용 스레드
     private List<Integer> blockImgList;
+    private GradientDrawable radius;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,11 +56,14 @@ public class GameActivity extends AppCompatActivity {
         flipSound = soundPool.load(this, R.raw.cardflip, 0);
 
 //                   오픈한 카드 개수, 클릭 회수, 열린 카드 아이디(-1은 열린 카드 없음)
-        soloData= new int[]{0, 0, -1};
+        soloData = new int[]{0, 0, -1};
 //                   레드팀 Score, 블루팀 Scrore, 팀 Turn, 오픈한 카드 개수, 열린 카드 아이디(-1은 열린 카드 없음)
-        duoData= new int[]{0, 0, 0, 0, -1};
+        duoData = new int[]{0, 0, 0, 0, -1};
+
+        radius = (GradientDrawable) this.getDrawable(R.drawable.radius);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onStart(){
         super.onStart();
@@ -113,6 +123,7 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     public void appendTableRow(int start, int end){
         tl = findViewById(R.id.tableLayout);
         tl.setGravity(1);
@@ -140,17 +151,35 @@ public class GameActivity extends AppCompatActivity {
         for (int i=0; i<difficulty; i++){
             tRow = new TableRow(this);
             for (int j=0; j<difficulty; j++){
-                img = new ImageView(this);
+//                img = new ImageView(this);
+                img = new CardView(this);
+                img.setOutlineProvider(new ViewOutlineProvider() {
+                    @Override
+                    public void getOutline(View view, Outline outline) {
+                        outline.setRoundRect(0,0,view.getWidth(),view.getHeight(),28);
+                    }
+                });
                 img.setId(idIndex);
+                img.setPadding(10,10,10,10);
+                if(i%2==1){
+                    img.setBackgroundResource(R.drawable.test1);
+                }else{
+                    img.setBackgroundResource(R.drawable.card_img);
+                }
+//                img.setBackgroundResource(R.drawable.test1);
+                img.setRadius(100);
+                System.out.println("img.getRadius()"+img.getRadius());
+//                img.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 
 //                변수 이용해서 이미지 설정
 //                img.setImageResource(getResources().getIdentifier( "@drawable/img_"+cardList[i][j].getImgIndex(), "drawable", this.getPackageName()));
-                img.setImageResource(R.drawable.card_img);
-                img.setImageResource(R.drawable.test);
+//                img.setImageResource(R.drawable.card_img);
+//                img.setImageResource(R.drawable.test1);
                 System.out.println(size.y+"|"+test.getMeasuredHeight()+"|"+test1.getMeasuredHeight());
                 //이미지 크기 조절 (임시 설정)
                 TableRow.LayoutParams params = new TableRow.LayoutParams(size.x/difficulty, size.y/difficulty);
                 img.setLayoutParams(params);
+                System.out.println("Img Size = "+size.x/difficulty+","+size.y/difficulty);
                 img.setPadding(10,10,10,10);
                 img.setOnClickListener(new  View.OnClickListener() {
                     @Override
@@ -163,7 +192,6 @@ public class GameActivity extends AppCompatActivity {
                         ObjectAnimator animator = ObjectAnimator.ofFloat(v,"rotationY",0,180);
                         animator.setDuration(500);
                         animator.start();
-
                         animator.addListener(new AnimatorListenerAdapter() {
                             @Override
                             public void onAnimationEnd(Animator animation) {
@@ -352,7 +380,7 @@ public class GameActivity extends AppCompatActivity {
         soundPool = null;
         stt = null;
         dtt = null;
-        t.interrupt();
+//        t.interrupt();
         t = null;
     }
 }
