@@ -1,5 +1,6 @@
 package com.example.flipflip;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,9 +8,12 @@ import android.view.View;
 
 public class DifficultySelectActivity extends AppCompatActivity {
 
+    public static Activity difficultySelectActivity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        difficultySelectActivity = DifficultySelectActivity.this;
         setContentView(R.layout.activity_difficulty_select);
     }
 

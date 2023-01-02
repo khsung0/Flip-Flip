@@ -3,6 +3,7 @@ package com.example.flipflip;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Outline;
 import android.graphics.Point;
@@ -11,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.RequiresApi;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.view.Display;
@@ -28,13 +30,14 @@ import java.util.Random;
 
 public class GameActivity extends AppCompatActivity {
 
+    private Intent intent;
     private TableLayout tl;
     private TableRow tRow;
 //    private ImageView img;
     private CardView img;
     private int idIndex;
     private pictureImg[][] cardList;
-    private int difficulty;
+    private int difficulty, imgIndex;
     private SoundPool soundPool;
     private int flipSound;
     private int player;
@@ -43,6 +46,8 @@ public class GameActivity extends AppCompatActivity {
     private SoloTimerThread stt;        //1인용 스레드
     private DuoTimerThread dtt;         //2인용 스레드
     private List<Integer> blockImgList;
+    private AlertDialog.Builder alertDialog;
+    private DifficultySelectActivity dsa;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,16 +62,20 @@ public class GameActivity extends AppCompatActivity {
         soloData = new int[]{0, 0, -1};
 //                   레드팀 Score, 블루팀 Scrore, 팀 Turn, 오픈한 카드 개수, 열린 카드 아이디(-1은 열린 카드 없음)
         duoData = new int[]{0, 0, 0, 0, -1};
+
+        alertDialog = new AlertDialog.Builder(GameActivity.this);
+
+        dsa = (DifficultySelectActivity)DifficultySelectActivity.difficultySelectActivity;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onStart(){
         super.onStart();
-        Intent intent = getIntent();
+        intent = getIntent();
         player = intent.getIntExtra("player",0);
         difficulty = intent.getIntExtra("difficulty",0);
-        int imgIndex = intent.getIntExtra("imgIndex",0);
+        imgIndex = intent.getIntExtra("imgIndex",0);
         int startIndex = 0;
         cardList = new pictureImg[difficulty][];
         for (int i = 0; i < difficulty; i++){
@@ -163,8 +172,6 @@ public class GameActivity extends AppCompatActivity {
                     img.setBackgroundResource(R.drawable.card_img);
                 }
 //                img.setBackgroundResource(R.drawable.test1);
-                img.setRadius(100);
-                System.out.println("img.getRadius()"+img.getRadius());
 //                img.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 
 //                변수 이용해서 이미지 설정
@@ -220,7 +227,34 @@ public class GameActivity extends AppCompatActivity {
 //                            게임 종료
                             if(soloData[0] == difficulty*difficulty){
                                 t.interrupt();
-//                                알림창 띄우기
+                                alertDialog.setTitle("결과 창");
+                                alertDialog.setMessage("성공했습니다.\n"+"임시"+"초 걸렸습니다.");
+                                alertDialog.setPositiveButton("다시 하기", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                        startActivity(intent);
+                                    }
+                                });
+                                alertDialog.setNegativeButton("난이도 선택", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                        intent = new Intent(GameActivity.this, DifficultySelectActivity.class);
+                                        intent.putExtra("imgIndex",imgIndex);
+                                        intent.putExtra("player",player);
+                                        startActivity(intent);
+                                    }
+                                });
+                                alertDialog.setNeutralButton("처음 메뉴로", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                        dsa.finish();
+                                        startActivity(new Intent(GameActivity.this, ModeSelectActivity.class));
+                                    }
+                                });
+                                alertDialog.create().show();
                             }
 
 //                            레드팀 Score, 블루팀 Scrore, 팀 Turn, 오픈한 카드 개수, 열린 카드 아이디(-1은 열린 카드 없음)
@@ -256,6 +290,35 @@ public class GameActivity extends AppCompatActivity {
                                 }else{
 
                                 }
+
+                                alertDialog.setTitle("결과 창");
+                                alertDialog.setMessage("~~가"+"이겼습니다.");
+                                alertDialog.setPositiveButton("다시 하기", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                        startActivity(intent);
+                                    }
+                                });
+                                alertDialog.setNegativeButton("난이도 선택", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                        intent = new Intent(GameActivity.this, DifficultySelectActivity.class);
+                                        intent.putExtra("imgIndex",imgIndex);
+                                        intent.putExtra("player",player);
+                                        startActivity(intent);
+                                    }
+                                });
+                                alertDialog.setNeutralButton("처음 메뉴로", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                        dsa.finish();
+                                        startActivity(new Intent(GameActivity.this, ModeSelectActivity.class));
+                                    }
+                                });
+                                alertDialog.create().show();
                             }
                         }
                     }
