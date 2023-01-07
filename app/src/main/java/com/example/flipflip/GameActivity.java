@@ -42,6 +42,7 @@ public class GameActivity extends AppCompatActivity {
     private int flipSound;
     private int player;
     private int[] soloData, duoData;             //1인용 데이터, 2인용 데이터
+    private TextView timer;             //타이머
     private Thread t;                   //스레드
     private SoloTimerThread stt;        //1인용 스레드
     private DuoTimerThread dtt;         //2인용 스레드
@@ -167,7 +168,7 @@ public class GameActivity extends AppCompatActivity {
                 img.setId(idIndex);
                 img.setPadding(10,10,10,10);
                 if(i%2==1){
-                    img.setBackgroundResource(R.drawable.test1);
+                    img.setBackgroundResource(R.drawable.test3);
                 }else{
                     img.setBackgroundResource(R.drawable.card_img);
                 }
@@ -228,7 +229,7 @@ public class GameActivity extends AppCompatActivity {
                             if(soloData[0] == difficulty*difficulty){
                                 t.interrupt();
                                 alertDialog.setTitle("결과 창");
-                                alertDialog.setMessage("성공했습니다.\n"+"임시"+"초 걸렸습니다.");
+                                alertDialog.setMessage("성공했습니다.\n"+Integer.parseInt(timer.getText().toString())+"초 걸렸습니다.");
                                 alertDialog.setPositiveButton("다시 하기", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -379,7 +380,6 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private class SoloTimerThread implements Runnable {
-        TextView timer;
         private SoloTimerThread(){
             timer = findViewById(R.id.timer);
         }
@@ -401,7 +401,6 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private class DuoTimerThread implements Runnable {
-        TextView timer;
         private DuoTimerThread(){
             timer = findViewById(R.id.timer);
         }
