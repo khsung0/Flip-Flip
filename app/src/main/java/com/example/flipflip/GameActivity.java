@@ -22,6 +22,7 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,12 +41,15 @@ public class GameActivity extends AppCompatActivity {
     private int difficulty, imgIndex;
     private SoundPool soundPool;
     private int flipSound;
+    private Class<R.drawable> drawable = R.drawable.class;
+    private Field field;
     private int player;
     private int[] soloData, duoData;             //1인용 데이터, 2인용 데이터
     private TextView timer;             //타이머
     private Thread t;                   //스레드
     private SoloTimerThread stt;        //1인용 스레드
     private DuoTimerThread dtt;         //2인용 스레드
+    private ObjectAnimator animator;
     private List<Integer> blockImgList;
     private AlertDialog.Builder alertDialog;
     private DifficultySelectActivity dsa;
@@ -167,11 +171,8 @@ public class GameActivity extends AppCompatActivity {
                 });
                 img.setId(idIndex);
                 img.setPadding(10,10,10,10);
-                if(i%2==1){
-                    img.setBackgroundResource(R.drawable.test3);
-                }else{
-                    img.setBackgroundResource(R.drawable.card_img);
-                }
+                img.setBackgroundResource(R.drawable.card_img);
+
 //                img.setBackgroundResource(R.drawable.test1);
 //                img.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 
@@ -193,7 +194,8 @@ public class GameActivity extends AppCompatActivity {
                             soundPool.play(flipSound, 5, 5, 0, 0, 1);
                             flipSound = soundPool.load(GameActivity.super.getApplicationContext(), R.raw.cardflip, 0);
                         }
-                        ObjectAnimator animator = ObjectAnimator.ofFloat(v,"rotationY",0,180);
+
+                        animator = ObjectAnimator.ofFloat(v,"rotationY",0,180);
                         animator.setDuration(500);
                         animator.start();
                         animator.addListener(new AnimatorListenerAdapter() {
@@ -206,23 +208,44 @@ public class GameActivity extends AppCompatActivity {
 
                         if(player == 1 ){
                             soloData[1]++;
+                            // 처음 카드 오픈할 때
                             if(soloData[2] == -1){
                                 soloData[0]++;
                                 soloData[2] = v.getId();
                                 findViewById(v.getId()).setClickable(false);
+                                reverseCard(v, false, true);
                                 blockImgList.add(v.getId());
                             }else{
+                                //두 카드가 일치할 경우
                                 if(cardList[soloData[2]/(difficulty)][soloData[2]%(difficulty)].getImgIndex() == cardList[v.getId()/(difficulty)][v.getId()%(difficulty)].getImgIndex()){
                                     findViewById(v.getId()).setClickable(false);
+                                    reverseCard(v, false,true);
                                     blockImgList.add(v.getId());
                                     soloData[0]++;
                                     soloData[2] = -1;
+                                //두 카드가 불 일치할 경우
                                 }else{
                                     findViewById(v.getId()).setClickable(true);
                                     findViewById(soloData[2]).setClickable(true);
-                                    blockImgList.remove((Integer) soloData[2]);
-                                    soloData[0]--;
-                                    soloData[2] = -1;
+                                    reverseCard(v, false,true);
+                                    //잘못 열린 두 카드 원래 상태로 변경
+                                    new Handler().postDelayed(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            animator = ObjectAnimator.ofFloat(findViewById(v.getId()),"rotationY",0,-180);
+                                            animator.setDuration(500);
+                                            animator.start();
+                                            reverseCard(v, true,true);
+                                            animator = ObjectAnimator.ofFloat(findViewById(soloData[2]),"rotationY",0,-180);
+                                            animator.start();
+                                            reverseCard(findViewById(soloData[2]), true,true);
+                                            blockImgList.remove((Integer) soloData[2]);
+                                            soloData[0]--;
+                                            soloData[2] = -1;
+                                        }
+                                    }, 850);
                                 }
                             }
 //                            게임 종료
@@ -263,37 +286,64 @@ public class GameActivity extends AppCompatActivity {
                         }else{
                             if(duoData[4] == -1){
                                 findViewById(v.getId()).setClickable(false);
+                                reverseCard(v, false,false);
                                 duoData[4] = v.getId();
                                 blockImgList.add(duoData[4]);
                             }else{
                                 if(cardList[duoData[4]/(difficulty)][duoData[4]%(difficulty)].getImgIndex() == cardList[v.getId()/(difficulty)][v.getId()%(difficulty)].getImgIndex()){
                                     findViewById(v.getId()).setClickable(false);
                                     duoData[4] = -1;
+                                    reverseCard(v, false,false);
                                     blockImgList.add(v.getId());
                                     duoData[duoData[2]] += 2;
+                                    new Handler().postDelayed(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            t.interrupt();
+                                        }
+                                    }, 250);
                                 }else{
                                     findViewById(duoData[4]).setClickable(true);
-                                    blockImgList.remove((Integer) duoData[4]);
-                                    duoData[4] = -1;
+                                    reverseCard(v, false,false);
+                                    //잘못 열린 두 카드 원래 상태로 변경
+                                    new Handler().postDelayed(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            animator = ObjectAnimator.ofFloat(findViewById(v.getId()),"rotationY",0,-180);
+                                            animator.setDuration(500);
+                                            animator.start();
+                                            reverseCard(v, true,false);
+                                            animator = ObjectAnimator.ofFloat(findViewById(duoData[4]),"rotationY",0,-180);
+                                            animator.start();
+                                            reverseCard(findViewById(duoData[4]), true,false);
+                                            blockImgList.remove((Integer) duoData[4]);
+                                            duoData[4] = -1;
+                                            t.interrupt();
+                                            duoData[2] = (duoData[2]+1)%2;
+                                        }
+                                    }, 850);
                                 }
-                                t.interrupt();
-                                duoData[2] = (duoData[2]+1)%2;
                             }
 
 //                            게임 종료
                             if(duoData[3] == difficulty*difficulty){
                                 t.interrupt();
                                 t = null;
+                                String msg;
                                 if(duoData[0] > duoData[1]){
-
+                                    msg = "레드팀이 이겼습니다!!";
                                 }else if (duoData[0] < duoData[1]){
-
+                                    msg = "블루팀이 이겼습니다!!";
                                 }else{
-
+                                    msg = "비겼습니다!!";
                                 }
 
                                 alertDialog.setTitle("결과 창");
-                                alertDialog.setMessage("~~가"+"이겼습니다.");
+                                alertDialog.setMessage(msg);
                                 alertDialog.setPositiveButton("다시 하기", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -349,7 +399,7 @@ public class GameActivity extends AppCompatActivity {
             public void run()
             {
                 for (int i = 0; i < idIndex; i++){
-                    ObjectAnimator animator = ObjectAnimator.ofFloat(findViewById(i),"rotationY",0,180);
+                    animator = ObjectAnimator.ofFloat(findViewById(i),"rotationY",0,180);
                     animator.start();
                 }
                 clickControl(true);
@@ -429,6 +479,34 @@ public class GameActivity extends AppCompatActivity {
         t = null;
         t = new Thread(dtt);
         t.start();
+    }
+
+    private void reverseCard(final View v, boolean isopend, final boolean isSolo) {
+        String img_name;
+        if(isopend){
+            img_name = "card_img";
+        }else{
+            img_name = "test"+"3";
+        }
+        try {
+            field = drawable.getField(img_name);
+            final int resource = field.getInt(null);
+            new Handler().postDelayed(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    findViewById(v.getId()).setBackgroundResource(resource);
+
+                    //2인용일 때 처리
+                    if(!isSolo){
+
+                    }
+                }
+            }, 250);
+
+        } catch (Exception e) {
+        }
     }
 
     @Override
