@@ -53,11 +53,14 @@ public class GameActivity extends AppCompatActivity {
     private List<Integer> blockImgList;
     private AlertDialog.Builder alertDialog;
     private DifficultySelectActivity dsa;
+    private String packageName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        packageName = this.getPackageName();
 
         //        효과음
         soundPool = new SoundPool.Builder().build();
@@ -171,14 +174,18 @@ public class GameActivity extends AppCompatActivity {
                 });
                 img.setId(idIndex);
                 img.setPadding(10,10,10,10);
-                img.setBackgroundResource(R.drawable.card_img);
+//                img.setBackgroundResource(R.drawable.card_img_120);
+
+
+//                img.setBackgroundResource(this.getResources().getIdentifier(getString(R.string.test_img)+".jpg", "drawable", this.getPackageName()));
+
 
 //                img.setBackgroundResource(R.drawable.test1);
 //                img.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 
 //                변수 이용해서 이미지 설정
-//                img.setImageResource(getResources().getIdentifier( "@drawable/img_"+cardList[i][j].getImgIndex(), "drawable", this.getPackageName()));
-//                img.setImageResource(R.drawable.card_img);
+                img.setBackgroundResource(getResources().getIdentifier( "@drawable/test"+cardList[i][j].getImgIndex(), "drawable", this.getPackageName()));
+//                img.setImageResource(R.drawable.card_img_423);
 //                img.setImageResource(R.drawable.test1);
                 System.out.println(size.y+"|"+test.getMeasuredHeight()+"|"+test1.getMeasuredHeight());
                 //이미지 크기 조절 (임시 설정)
@@ -401,6 +408,7 @@ public class GameActivity extends AppCompatActivity {
                 for (int i = 0; i < idIndex; i++){
                     animator = ObjectAnimator.ofFloat(findViewById(i),"rotationY",0,180);
                     animator.start();
+                    reverseCard(findViewById(i), true,false);
                 }
                 clickControl(true);
                 if(player == 1){
@@ -483,14 +491,15 @@ public class GameActivity extends AppCompatActivity {
 
     private void reverseCard(final View v, boolean isopend, final boolean isSolo) {
         String img_name;
-        if(isopend){
-            img_name = "card_img";
-        }else{
-            img_name = "test"+"3";
-        }
+        final int resource;
+
         try {
-            field = drawable.getField(img_name);
-            final int resource = field.getInt(null);
+            if(isopend){
+                field = drawable.getField(getString(R.string.test_img));
+                resource = field.getInt(null);
+            }else{
+                resource = getResources().getIdentifier( "@drawable/test"+cardList[v.getId()/(difficulty)][v.getId()%(difficulty)].getImgIndex(), "drawable", packageName);
+            }
             new Handler().postDelayed(new Runnable()
             {
                 @Override
@@ -516,7 +525,6 @@ public class GameActivity extends AppCompatActivity {
         soundPool = null;
         stt = null;
         dtt = null;
-//        t.interrupt();
         t = null;
     }
 }
