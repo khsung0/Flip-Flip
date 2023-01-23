@@ -1,8 +1,9 @@
 package com.example.flipflip;
 
+import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -12,10 +13,14 @@ import android.widget.Toast;
 public class ModeSelectActivity extends AppCompatActivity {
 
     String[] items = {"강아지", "고양이"};
+    public static Activity modeSelectActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_mode_select);
+
+        modeSelectActivity = ModeSelectActivity.this;
         setContentView(R.layout.activity_mode_select);
 
         //스피너 설정

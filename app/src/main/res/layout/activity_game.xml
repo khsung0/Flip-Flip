@@ -16,12 +16,14 @@
             android:id="@+id/head_row"
             android:weightSum="3">
 
-            <ImageView
-                android:id="@+id/player1"
+            <TextView
+                android:id="@+id/score_1"
                 android:layout_width="0dp"
+                android:fontFamily="@font/antonregular"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                app:srcCompat="@android:drawable/btn_star_big_on"/>
+                android:gravity="center"
+                android:textSize="45sp" />
 
             <TextView
                 android:id="@+id/timer"
@@ -33,12 +35,14 @@
                 android:gravity="center"
                 android:textSize="60sp" />
 
-            <ImageView
-                android:id="@+id/player2"
+            <TextView
+                android:id="@+id/score_2"
                 android:layout_width="0dp"
+                android:fontFamily="@font/antonregular"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                app:srcCompat="@drawable/ic_launcher_background"/>
+                android:gravity="center"
+                android:textSize="45sp" />
 
         </TableRow>
     </TableLayout>

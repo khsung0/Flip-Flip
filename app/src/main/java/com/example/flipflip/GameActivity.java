@@ -11,6 +11,7 @@ import android.media.SoundPool;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.Dimension;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +22,7 @@ import android.view.ViewOutlineProvider;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -28,6 +30,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class GameActivity extends AppCompatActivity {
 
@@ -37,6 +41,7 @@ public class GameActivity extends AppCompatActivity {
 //    private ImageView img;
     private CardView img;
     private int idIndex;
+    private int second = 0;
     private pictureImg[][] cardList;
     private int difficulty, imgIndex;
     private SoundPool soundPool;
@@ -53,27 +58,31 @@ public class GameActivity extends AppCompatActivity {
     private List<Integer> blockImgList;
     private AlertDialog.Builder alertDialog;
     private DifficultySelectActivity dsa;
+    private ModeSelectActivity msa;
     private String packageName;
+    private TextView score_1, score_2;
+    private final static Logger log = Logger.getGlobal();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-
         packageName = this.getPackageName();
 
         //        효과음
         soundPool = new SoundPool.Builder().build();
         flipSound = soundPool.load(this, R.raw.cardflip, 0);
 
-//                   오픈한 카드 개수, 클릭 회수, 열린 카드 아이디(-1은 열린 카드 없음)
-        soloData = new int[]{0, 0, -1};
+//                   오픈한 카드 개수, 클릭 회수, 열린 카드 아이디(-1은 열린 카드 없음), Score
+        soloData = new int[]{0, 0, -1, 0};
 //                   레드팀 Score, 블루팀 Scrore, 팀 Turn, 오픈한 카드 개수, 열린 카드 아이디(-1은 열린 카드 없음)
         duoData = new int[]{0, 0, 0, 0, -1};
 
         alertDialog = new AlertDialog.Builder(GameActivity.this);
 
+        //액티비티 종료를 위한 변수
         dsa = (DifficultySelectActivity)DifficultySelectActivity.difficultySelectActivity;
+        msa = (ModeSelectActivity)ModeSelectActivity.modeSelectActivity;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -85,6 +94,7 @@ public class GameActivity extends AppCompatActivity {
         difficulty = intent.getIntExtra("difficulty",0);
         imgIndex = intent.getIntExtra("imgIndex",0);
         int startIndex = 0;
+
         cardList = new pictureImg[difficulty][];
         for (int i = 0; i < difficulty; i++){
             cardList[i] = new pictureImg[difficulty];
@@ -93,9 +103,7 @@ public class GameActivity extends AppCompatActivity {
         for (int i =0;i<imgIndex;i++){
             startIndex += integers[i];
         }
-
         blockImgList = new ArrayList<>();
-
         generateImgIndex(startIndex+1,startIndex+integers[imgIndex]);
         appendTableRow(startIndex+1,startIndex+integers[imgIndex]);
 
@@ -105,7 +113,8 @@ public class GameActivity extends AppCompatActivity {
             }
             System.out.println();
         }
-
+        score_1 = findViewById(R.id.score_1);
+        score_2 = findViewById(R.id.score_2);
         startAllOpen();
     }
 
@@ -113,6 +122,8 @@ public class GameActivity extends AppCompatActivity {
     private void generateImgIndex(int start, int end) {
         Integer[] randomList = new Integer[difficulty*difficulty/2];
         Random rand = new Random();
+
+//        중복 없이 카드 인덱스 뽑기
         for (int i = 0; i < difficulty*difficulty/2; i++){
             randomList[i] = rand.nextInt(end)+start;
             for(int j = 0; j<i; j++){
@@ -122,6 +133,8 @@ public class GameActivity extends AppCompatActivity {
                 }
             }
         }
+
+//        카드 셔플
         List<Integer> tempList1 = new ArrayList(Arrays.asList(randomList));
         List<Integer> tempList2 = new ArrayList(Arrays.asList(randomList));
         tempList1.addAll(tempList2);
@@ -129,6 +142,7 @@ public class GameActivity extends AppCompatActivity {
         Collections.shuffle(tempList1);
         Integer[] res = tempList1.toArray(new Integer[tempList1.size()]);
 
+//        카드 데이터 세팅
         for (int i =0; i < difficulty; i++){
             for (int j =0; j < difficulty; j++){
                 cardList[i][j] = new pictureImg(false, res[i*difficulty+j]);
@@ -182,9 +196,13 @@ public class GameActivity extends AppCompatActivity {
 
 //                img.setBackgroundResource(R.drawable.test1);
 //                img.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                try {
+                    img.setBackgroundResource(getResources().getIdentifier( "@drawable/test"+cardList[i][j].getImgIndex(), "drawable", this.getPackageName()));
+                }catch (Exception e){
+                    Toast.makeText(getApplicationContext(),"오류가 발생했습니다.",Toast.LENGTH_LONG).show();
+                }
 
 //                변수 이용해서 이미지 설정
-                img.setBackgroundResource(getResources().getIdentifier( "@drawable/test"+cardList[i][j].getImgIndex(), "drawable", this.getPackageName()));
 //                img.setImageResource(R.drawable.card_img_423);
 //                img.setImageResource(R.drawable.test1);
                 System.out.println(size.y+"|"+test.getMeasuredHeight()+"|"+test1.getMeasuredHeight());
@@ -230,10 +248,18 @@ public class GameActivity extends AppCompatActivity {
                                     blockImgList.add(v.getId());
                                     soloData[0]++;
                                     soloData[2] = -1;
-                                //두 카드가 불 일치할 경우
+                                    soloData[3] += 2;
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            score_1.setText(String.format("%02d", soloData[3]));
+                                        }
+                                    }, 250);
+
+                                //두 카드가 불 일치할 경우 계속 클릭 시 오류 발생
                                 }else{
-                                    findViewById(v.getId()).setClickable(true);
-                                    findViewById(soloData[2]).setClickable(true);
+//                                    findViewById(v.getId()).setClickable(true);
+//                                    findViewById(soloData[2]).setClickable(true);
                                     reverseCard(v, false,true);
                                     //잘못 열린 두 카드 원래 상태로 변경
                                     new Handler().postDelayed(new Runnable()
@@ -271,6 +297,7 @@ public class GameActivity extends AppCompatActivity {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         finish();
+                                        dsa.finish();
                                         intent = new Intent(GameActivity.this, DifficultySelectActivity.class);
                                         intent.putExtra("imgIndex",imgIndex);
                                         intent.putExtra("player",player);
@@ -282,6 +309,7 @@ public class GameActivity extends AppCompatActivity {
                                     public void onClick(DialogInterface dialog, int which) {
                                         finish();
                                         dsa.finish();
+                                        msa.finish();
                                         startActivity(new Intent(GameActivity.this, ModeSelectActivity.class));
                                     }
                                 });
@@ -291,24 +319,39 @@ public class GameActivity extends AppCompatActivity {
 //                            레드팀 Score, 블루팀 Scrore, 팀 Turn, 오픈한 카드 개수, 열린 카드 아이디(-1은 열린 카드 없음)
 //                            duoData = new int[]{0, 0, 0, 0, -1};
                         }else{
+//                            카드 처음 오픈
                             if(duoData[4] == -1){
                                 findViewById(v.getId()).setClickable(false);
                                 reverseCard(v, false,false);
                                 duoData[4] = v.getId();
                                 blockImgList.add(duoData[4]);
                             }else{
+//                                오픈한 두 카드가 일치할 경우
                                 if(cardList[duoData[4]/(difficulty)][duoData[4]%(difficulty)].getImgIndex() == cardList[v.getId()/(difficulty)][v.getId()%(difficulty)].getImgIndex()){
                                     findViewById(v.getId()).setClickable(false);
                                     duoData[4] = -1;
                                     reverseCard(v, false,false);
                                     blockImgList.add(v.getId());
                                     duoData[duoData[2]] += 2;
+                                    duoData[3] += 2;
                                     new Handler().postDelayed(new Runnable()
                                     {
                                         @Override
                                         public void run()
                                         {
-                                            t.interrupt();
+                                            try{
+                                                t.interrupt();
+                                            }catch (Exception e){
+                                                log.setLevel(Level.ALL);
+                                                log.info("게임 종료");
+                                            }
+
+                                            if(duoData[2]==0){
+                                                score_1.setText(String.format("%02d", duoData[duoData[2]]));
+                                            }else{
+                                                score_2.setText(String.format("%02d", duoData[duoData[2]]));
+                                            }
+
                                         }
                                     }, 250);
                                 }else{
@@ -362,6 +405,7 @@ public class GameActivity extends AppCompatActivity {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         finish();
+                                        dsa.finish();
                                         intent = new Intent(GameActivity.this, DifficultySelectActivity.class);
                                         intent.putExtra("imgIndex",imgIndex);
                                         intent.putExtra("player",player);
@@ -373,6 +417,7 @@ public class GameActivity extends AppCompatActivity {
                                     public void onClick(DialogInterface dialog, int which) {
                                         finish();
                                         dsa.finish();
+                                        msa.finish();
                                         startActivity(new Intent(GameActivity.this, ModeSelectActivity.class));
                                     }
                                 });
@@ -393,10 +438,14 @@ public class GameActivity extends AppCompatActivity {
 
     private void startAllOpen(){
         TextView timer = findViewById(R.id.timer);
+        score_1.setText(String.format("%02d", 0));
         if(player == 1){
-            timer.setText(String.format("%03d", 0));
+            timer.setTextSize(Dimension.SP, 55);
+            timer.setText(String.format("%02d:%02d", 0,0));
         }else{
+            timer.setTextSize(Dimension.SP, 60);
             timer.setText(String.format("%02d", 0));
+            score_2.setText(String.format("%02d", 0));
         }
         clickControl(false);
 
@@ -443,12 +492,15 @@ public class GameActivity extends AppCompatActivity {
         }
 
         public void run(){
-            int second = 0;
             while (true){
-                timer.setText(String.format("%03d", second));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        timer.setText(String.format("%02d:%02d", (int)second/60,second%60));
+                    }
+                });
                 try {
-                    // 스레드에게 수행시킬 동작들 구현
-                    Thread.sleep(1000); // 1초간 Thread를 잠재운다
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     break;
@@ -507,7 +559,7 @@ public class GameActivity extends AppCompatActivity {
                 {
                     findViewById(v.getId()).setBackgroundResource(resource);
 
-                    //2인용일 때 처리
+                    //2인용일 때 턴 처리
                     if(!isSolo){
 
                     }
