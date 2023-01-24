@@ -1,7 +1,5 @@
 package com.example.flipflip;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -223,13 +221,13 @@ public class GameActivity extends AppCompatActivity {
                         animator = ObjectAnimator.ofFloat(v,"rotationY",0,180);
                         animator.setDuration(500);
                         animator.start();
-                        animator.addListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                super.onAnimationEnd(animation);
-                                clickControl(true);
-                            }
-                        });
+//                        animator.addListener(new AnimatorListenerAdapter() {
+//                            @Override
+//                            public void onAnimationEnd(Animator animation) {
+//                                super.onAnimationEnd(animation);
+//                                clickControl(true);
+//                            }
+//                        });
 
                         if(player == 1 ){
                             soloData[1]++;
@@ -237,9 +235,9 @@ public class GameActivity extends AppCompatActivity {
                             if(soloData[2] == -1){
                                 soloData[0]++;
                                 soloData[2] = v.getId();
-                                findViewById(v.getId()).setClickable(false);
                                 reverseCard(v, false, true);
                                 blockImgList.add(v.getId());
+                                clickControl(true);
                             }else{
                                 //두 카드가 일치할 경우
                                 if(cardList[soloData[2]/(difficulty)][soloData[2]%(difficulty)].getImgIndex() == cardList[v.getId()/(difficulty)][v.getId()%(difficulty)].getImgIndex()){
@@ -253,13 +251,14 @@ public class GameActivity extends AppCompatActivity {
                                         @Override
                                         public void run() {
                                             score_1.setText(String.format("%02d", soloData[3]));
+                                            clickControl(true);
                                         }
                                     }, 250);
 
                                 //두 카드가 불 일치할 경우 계속 클릭 시 오류 발생
                                 }else{
-//                                    findViewById(v.getId()).setClickable(true);
-//                                    findViewById(soloData[2]).setClickable(true);
+                                    findViewById(v.getId()).setClickable(false);
+                                    findViewById(soloData[2]).setClickable(true);
                                     reverseCard(v, false,true);
                                     //잘못 열린 두 카드 원래 상태로 변경
                                     new Handler().postDelayed(new Runnable()
@@ -275,12 +274,16 @@ public class GameActivity extends AppCompatActivity {
                                             animator.start();
                                             reverseCard(findViewById(soloData[2]), true,true);
                                             blockImgList.remove((Integer) soloData[2]);
+//                                            findViewById(v.getId()).setClickable(true);
+//                                            findViewById(soloData[2]).setClickable(true);
                                             soloData[0]--;
                                             soloData[2] = -1;
+                                            clickControl(true);
                                         }
                                     }, 850);
                                 }
                             }
+
 //                            게임 종료
                             if(soloData[0] == difficulty*difficulty){
                                 t.interrupt();
@@ -325,6 +328,7 @@ public class GameActivity extends AppCompatActivity {
                                 reverseCard(v, false,false);
                                 duoData[4] = v.getId();
                                 blockImgList.add(duoData[4]);
+                                clickControl(true);
                             }else{
 //                                오픈한 두 카드가 일치할 경우
                                 if(cardList[duoData[4]/(difficulty)][duoData[4]%(difficulty)].getImgIndex() == cardList[v.getId()/(difficulty)][v.getId()%(difficulty)].getImgIndex()){
@@ -334,6 +338,7 @@ public class GameActivity extends AppCompatActivity {
                                     blockImgList.add(v.getId());
                                     duoData[duoData[2]] += 2;
                                     duoData[3] += 2;
+                                    clickControl(true);
                                     new Handler().postDelayed(new Runnable()
                                     {
                                         @Override
@@ -355,7 +360,7 @@ public class GameActivity extends AppCompatActivity {
                                         }
                                     }, 250);
                                 }else{
-                                    findViewById(duoData[4]).setClickable(true);
+//                                    findViewById(duoData[4]).setClickable(true);
                                     reverseCard(v, false,false);
                                     //잘못 열린 두 카드 원래 상태로 변경
                                     new Handler().postDelayed(new Runnable()
@@ -374,6 +379,7 @@ public class GameActivity extends AppCompatActivity {
                                             duoData[4] = -1;
                                             t.interrupt();
                                             duoData[2] = (duoData[2]+1)%2;
+                                            clickControl(true);
                                         }
                                     }, 850);
                                 }
@@ -424,6 +430,8 @@ public class GameActivity extends AppCompatActivity {
                                 alertDialog.create().show();
                             }
                         }
+//                        clickControl(true);
+
                     }
                 });
                 //Table Row에 이미지 붙이기
