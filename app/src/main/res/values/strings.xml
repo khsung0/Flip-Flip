@@ -4,5 +4,5 @@
         <item>8</item>  <!-- 강아지 사진 개수 -->
         <item>50</item>  <!-- 고양이 사진 개수 -->
     </integer-array>
-    <string name="test_img">card_img_423</string>
+    <string name="test_img">card_img_120</string>
 </resources>

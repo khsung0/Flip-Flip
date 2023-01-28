@@ -1,5 +1,6 @@
 package com.example.flipflip;
 
+import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -218,16 +219,110 @@ public class GameActivity extends AppCompatActivity {
                             flipSound = soundPool.load(GameActivity.super.getApplicationContext(), R.raw.cardflip, 0);
                         }
 
-                        animator = ObjectAnimator.ofFloat(v,"rotationY",0,180);
+                        animator = ObjectAnimator.ofFloat(v,"rotationY",-180, 0);
                         animator.setDuration(500);
+                        animator.addListener(new Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(Animator animator) {
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animator animator) {
+                                if(player == 1 ){
+//                                   게임 종료
+                                    if(soloData[0] == difficulty*difficulty){
+                                        t.interrupt();
+                                        alertDialog.setTitle("결과 창");
+                                        alertDialog.setMessage("성공했습니다.\n"+Integer.parseInt(timer.getText().toString().split(":")[0])+"분"+
+                                                Integer.parseInt(timer.getText().toString().split(":")[1])+"초 걸렸습니다.");
+                                        alertDialog.setPositiveButton("다시 하기", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                finish();
+                                                startActivity(intent);
+                                            }
+                                        });
+                                        alertDialog.setNegativeButton("난이도 선택", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                finish();
+                                                dsa.finish();
+                                                intent = new Intent(GameActivity.this, DifficultySelectActivity.class);
+                                                intent.putExtra("imgIndex",imgIndex);
+                                                intent.putExtra("player",player);
+                                                startActivity(intent);
+                                            }
+                                        });
+                                        alertDialog.setNeutralButton("처음 메뉴로", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                finish();
+                                                dsa.finish();
+                                                msa.finish();
+                                                startActivity(new Intent(GameActivity.this, ModeSelectActivity.class));
+                                            }
+                                        });
+                                        alertDialog.create().show();
+                                    }
+                                }else{
+//                                  게임 종료
+                                    if(duoData[3] == difficulty*difficulty){
+                                        t.interrupt();
+                                        t = null;
+                                        String msg;
+                                        if(duoData[0] > duoData[1]){
+                                            msg = "레드팀이 이겼습니다!!";
+                                        }else if (duoData[0] < duoData[1]){
+                                            msg = "블루팀이 이겼습니다!!";
+                                        }else{
+                                            msg = "비겼습니다!!";
+                                        }
+
+                                        alertDialog.setTitle("결과 창");
+                                        alertDialog.setMessage(msg);
+                                        alertDialog.setPositiveButton("다시 하기", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                finish();
+                                                startActivity(intent);
+                                            }
+                                        });
+                                        alertDialog.setNegativeButton("난이도 선택", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                finish();
+                                                dsa.finish();
+                                                intent = new Intent(GameActivity.this, DifficultySelectActivity.class);
+                                                intent.putExtra("imgIndex",imgIndex);
+                                                intent.putExtra("player",player);
+                                                startActivity(intent);
+                                            }
+                                        });
+                                        alertDialog.setNeutralButton("처음 메뉴로", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                finish();
+                                                dsa.finish();
+                                                msa.finish();
+                                                startActivity(new Intent(GameActivity.this, ModeSelectActivity.class));
+                                            }
+                                        });
+                                        alertDialog.create().show();
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onAnimationCancel(Animator animator) {
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animator animator) {
+                            }
+
+
+                        });
                         animator.start();
-//                        animator.addListener(new AnimatorListenerAdapter() {
-//                            @Override
-//                            public void onAnimationEnd(Animator animation) {
-//                                super.onAnimationEnd(animation);
-//                                clickControl(true);
-//                            }
-//                        });
 
                         if(player == 1 ){
                             soloData[1]++;
@@ -274,49 +369,12 @@ public class GameActivity extends AppCompatActivity {
                                             animator.start();
                                             reverseCard(findViewById(soloData[2]), true,true);
                                             blockImgList.remove((Integer) soloData[2]);
-//                                            findViewById(v.getId()).setClickable(true);
-//                                            findViewById(soloData[2]).setClickable(true);
                                             soloData[0]--;
                                             soloData[2] = -1;
                                             clickControl(true);
                                         }
                                     }, 850);
                                 }
-                            }
-
-//                            게임 종료
-                            if(soloData[0] == difficulty*difficulty){
-                                t.interrupt();
-                                alertDialog.setTitle("결과 창");
-                                alertDialog.setMessage("성공했습니다.\n"+Integer.parseInt(timer.getText().toString())+"초 걸렸습니다.");
-                                alertDialog.setPositiveButton("다시 하기", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        finish();
-                                        startActivity(intent);
-                                    }
-                                });
-                                alertDialog.setNegativeButton("난이도 선택", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        finish();
-                                        dsa.finish();
-                                        intent = new Intent(GameActivity.this, DifficultySelectActivity.class);
-                                        intent.putExtra("imgIndex",imgIndex);
-                                        intent.putExtra("player",player);
-                                        startActivity(intent);
-                                    }
-                                });
-                                alertDialog.setNeutralButton("처음 메뉴로", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        finish();
-                                        dsa.finish();
-                                        msa.finish();
-                                        startActivity(new Intent(GameActivity.this, ModeSelectActivity.class));
-                                    }
-                                });
-                                alertDialog.create().show();
                             }
 
 //                            레드팀 Score, 블루팀 Scrore, 팀 Turn, 오픈한 카드 개수, 열린 카드 아이디(-1은 열린 카드 없음)
@@ -360,7 +418,6 @@ public class GameActivity extends AppCompatActivity {
                                         }
                                     }, 250);
                                 }else{
-//                                    findViewById(duoData[4]).setClickable(true);
                                     reverseCard(v, false,false);
                                     //잘못 열린 두 카드 원래 상태로 변경
                                     new Handler().postDelayed(new Runnable()
@@ -378,61 +435,18 @@ public class GameActivity extends AppCompatActivity {
                                             blockImgList.remove((Integer) duoData[4]);
                                             duoData[4] = -1;
                                             t.interrupt();
+
+//                                            턴 변경
                                             duoData[2] = (duoData[2]+1)%2;
                                             clickControl(true);
                                         }
                                     }, 850);
                                 }
                             }
-
-//                            게임 종료
-                            if(duoData[3] == difficulty*difficulty){
-                                t.interrupt();
-                                t = null;
-                                String msg;
-                                if(duoData[0] > duoData[1]){
-                                    msg = "레드팀이 이겼습니다!!";
-                                }else if (duoData[0] < duoData[1]){
-                                    msg = "블루팀이 이겼습니다!!";
-                                }else{
-                                    msg = "비겼습니다!!";
-                                }
-
-                                alertDialog.setTitle("결과 창");
-                                alertDialog.setMessage(msg);
-                                alertDialog.setPositiveButton("다시 하기", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        finish();
-                                        startActivity(intent);
-                                    }
-                                });
-                                alertDialog.setNegativeButton("난이도 선택", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        finish();
-                                        dsa.finish();
-                                        intent = new Intent(GameActivity.this, DifficultySelectActivity.class);
-                                        intent.putExtra("imgIndex",imgIndex);
-                                        intent.putExtra("player",player);
-                                        startActivity(intent);
-                                    }
-                                });
-                                alertDialog.setNeutralButton("처음 메뉴로", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        finish();
-                                        dsa.finish();
-                                        msa.finish();
-                                        startActivity(new Intent(GameActivity.this, ModeSelectActivity.class));
-                                    }
-                                });
-                                alertDialog.create().show();
-                            }
                         }
 //                        clickControl(true);
-
                     }
+
                 });
                 //Table Row에 이미지 붙이기
                 tRow.addView(img);
@@ -549,8 +563,7 @@ public class GameActivity extends AppCompatActivity {
         t.start();
     }
 
-    private void reverseCard(final View v, boolean isopend, final boolean isSolo) {
-        String img_name;
+    private void reverseCard(final View v, final boolean isopend, final boolean isSolo) {
         final int resource;
 
         try {
@@ -566,11 +579,6 @@ public class GameActivity extends AppCompatActivity {
                 public void run()
                 {
                     findViewById(v.getId()).setBackgroundResource(resource);
-
-                    //2인용일 때 턴 처리
-                    if(!isSolo){
-
-                    }
                 }
             }, 250);
 
