@@ -9,44 +9,51 @@
         android:id="@+id/tableLayout"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
-        android:stretchColumns="*">
+        android:stretchColumns="*"
+        android:splitMotionEvents="false">
 
         <TableRow
+            android:id="@+id/head_row"
             android:weightSum="3">
 
-            <ImageView
-                android:id="@+id/player1"
-                android:layout_width="0dp"
-                android:layout_height="130sp"
-                android:layout_weight="1"
-                app:srcCompat="@android:drawable/btn_star_big_on"></ImageView>
-
             <TextView
-                android:id="@+id/text2"
+                android:id="@+id/score_1"
                 android:layout_width="0dp"
-                android:layout_height="130sp"
+                android:fontFamily="@font/antonregular"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="02"
-                android:textSize="50sp"></TextView>
+                android:textSize="45sp" />
 
-            <ImageView
-                android:id="@+id/player2"
+            <TextView
+                android:id="@+id/timer"
                 android:layout_width="0dp"
-                android:layout_height="130sp"
+                android:textColor="@color/timerRed"
+                android:fontFamily="@font/antonregular"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                app:srcCompat="@drawable/ic_launcher_background"></ImageView>
+                android:gravity="center"
+                android:textSize="60sp" />
+
+            <TextView
+                android:id="@+id/score_2"
+                android:layout_width="0dp"
+                android:fontFamily="@font/antonregular"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textSize="45sp" />
 
         </TableRow>
     </TableLayout>
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/ad_test"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="0dp"
         android:text="광고 자리"
-        android:textSize="25sp" />
+        android:textSize="55sp" />
 </RelativeLayout>
